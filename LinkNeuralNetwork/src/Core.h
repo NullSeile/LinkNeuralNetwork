@@ -6,12 +6,12 @@
 #include <string>
 #include <functional>
 
-#define NNN_BUILD_DLL 0
+#define LNN_BUILD_DLL 0
 
-#if NNN_BUILD_DLL
-#define NNN_API __declspec(dllexport)
+#if LNN_BUILD_DLL
+#define LNN_API __declspec(dllexport)
 #else
-#define NNN_API
+#define LNN_API
 #endif
 
 typedef unsigned int uint;

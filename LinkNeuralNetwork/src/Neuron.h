@@ -5,7 +5,7 @@
 
 namespace nn {
 
-	class NNN_API Neuron
+	class LNN_API Neuron
 	{
 	private:
 

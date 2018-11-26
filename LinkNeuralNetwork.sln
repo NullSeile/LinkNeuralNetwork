@@ -5,9 +5,9 @@ VisualStudioVersion = 15.0.27428.2027
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LinkNeuralNetwork", "LinkNeuralNetwork\LinkNeuralNetwork.vcxproj", "{8DCE7BE1-AE3B-4138-9B77-EC8A722FBE78}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SandBox", "SandBox\SandBox.vcxproj", "{19E3935D-96B5-4068-9F96-DBF79D30697A}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "User Interface", "User Interface\User Interface.vcxproj", "{76FA6A23-B1BE-46C5-B805-1ADFF1B4D085}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SandBox", "SandBox\SandBox.vcxproj", "{19E3935D-96B5-4068-9F96-DBF79D30697A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

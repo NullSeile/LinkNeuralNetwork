@@ -7,7 +7,7 @@
 namespace nn
 {
 	template<uint tInputs, uint tHidden, uint tOutputs, bool tBias = true>
-	class NNN_API NeuralNetwork
+	class LNN_API NeuralNetwork
 	{
 	private:
 		// Stores all the neurons of the net

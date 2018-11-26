@@ -4,7 +4,7 @@
 
 namespace nn {
 
-	class NNN_API Link
+	class LNN_API Link
 	{
 	public:
 		Link();
