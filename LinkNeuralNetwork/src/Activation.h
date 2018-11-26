@@ -4,7 +4,7 @@
 
 namespace nn {
 
-	struct NNN_API Activation
+	struct LNN_API Activation
 	{
 		Activation(const std::string& id, const std::function<double(const double& x)>& funct, const std::function<double(const double& x)>& derivate);
 
