@@ -81,9 +81,9 @@ namespace nn
 		// Create the links
 		/////////////////////////
 		// Links
-		for (uint i = 0; i < m_links.size(); i++)
+		for (uint i = 0; i < tHidden + 1; i++)
 		{
-			for (uint n1 = 0; n1 < m_neurons[i].size(); n1++)
+			for (uint n1 = 0; n1 < m_structure[i] + tBias; n1++)
 			{
 				for (uint n2 = 0; n2 < m_structure[i + 1]; n2++)
 				{
@@ -109,14 +109,14 @@ namespace nn
 		// Calclulate the output
 		//////////////////////////
 		// For each neuron from second layer (skip the input layer)
-		for (uint i = 1; i < m_neurons.size(); i++)
+		for (uint i = 1; i < tHidden + 2; i++)
 		{
 			for (uint j = 0; j < m_structure[i]; j++)
 			{
 				double sum = 0;
 
 				// For each link attached to the neuron
-				for (uint k = 0; k < m_neurons[i - 1].size(); k++)
+				for (uint k = 0; k < m_structure[i - 1] + tBias; k++)
 				{
 					// link index = previousNeuronIndex * currentLayerSize + currentNeuronIndex
 					uint index = k * m_structure[i] + j;
@@ -172,7 +172,7 @@ namespace nn
 
 		for (uint i = tHidden; i >= 1; i--)
 		{
-			for (uint j = 0; j < m_neurons[i].size(); j++)
+			for (uint j = 0; j < m_structure[i] + tBias; j++)
 			{
 				m_neurons[i][j].error = 0;
 
@@ -189,7 +189,7 @@ namespace nn
 		// Adjust the weights
 		for (uint i = 0; i < tHidden + 1; i++)
 		{
-			for (uint j = 0; j < m_neurons[i].size(); j++)
+			for (uint j = 0; j < m_structure[i] + tBias; j++)
 			{
 				for (uint k = 0; k < m_structure[i + 1]; k++)
 				{

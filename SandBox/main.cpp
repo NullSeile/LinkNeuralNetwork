@@ -80,10 +80,10 @@ int main()
 		[](const double& x)->double { return ((1.f / (1.f + exp(-x))) * (1 - (1.f / (1.f + exp(-x))))) + (1 / 10); }
 	);
 
-	nn::NeuralNetwork<2, 1, 1, false> nn({ 3 }, sigmoid);
+	nn::NeuralNetwork<2, 2, 1, true> nn({ 3, 3 }, sigmoid);
 
 	timer.Restart();
-	for (uint i = 0; i < 100000; i++)
+	for (uint i = 0; i < 2000; i++)
 	{
 		uint index = (rand() % (3 + 1));
 		nn.Train(inputs[index], outputs[index], 0.3, 0.0);
