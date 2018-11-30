@@ -30,7 +30,8 @@ namespace nn
 		std::array<double, tOutputs> Calculate(const std::array<double, tInputs>& inputs);
 		
 		// Adjust the link weights to return the optimal outputs to the inputs
-		void Train(const std::array<double, tInputs>& inputs, const std::array<double, tOutputs>& optimal, const double& lRate, const double& dropout = 0.0);
+		// Returns the error
+		double Train(const std::array<double, tInputs>& inputs, const std::array<double, tOutputs>& optimal, const double& lRate, const double& dropout = 0.0);
 
 		const std::array<uint, tHidden + 2>& GetStructure() const;
 		const std::array<std::vector<Neuron>, tHidden + 2>& GetNeurons() const;
@@ -143,7 +144,7 @@ namespace nn
 	}
 
 	template<uint tInputs, uint tHidden, uint tOutputs, bool tBias = true>
-	inline void NeuralNetwork<tInputs, tHidden, tOutputs, tBias>::Train(const std::array<double, tInputs>& inputs, const std::array<double, tOutputs>& optimal, const double& lRate, const double& dropout)
+	inline double NeuralNetwork<tInputs, tHidden, tOutputs, tBias>::Train(const std::array<double, tInputs>& inputs, const std::array<double, tOutputs>& optimal, const double& lRate, const double& dropout)
 	{
 		// Make the guess to calclulate the error
 		std::array<double, tOutputs> guess = this->Calculate(inputs);
@@ -202,6 +203,14 @@ namespace nn
 				}
 			}
 		}
+
+		double err = 0;
+		for (const Neuron& x : m_neurons.back())
+		{
+			err += abs(x.error);
+		}
+
+		return err / tOutputs;
 	}
 
 	template<uint tInputs, uint tHidden, uint tOutputs, bool tBias>

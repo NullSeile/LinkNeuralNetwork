@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Graph.cpp" />
     <ClCompile Include="src\Button.cpp" />
     <ClCompile Include="src\Interactuable.cpp" />
     <ClCompile Include="src\Line.cpp" />
@@ -29,6 +30,7 @@
     <ClCompile Include="src\Widget.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Graph.h" />
     <ClInclude Include="src\Button.h" />
     <ClInclude Include="src\Global.h" />
     <ClInclude Include="src\Interactuable.h" />

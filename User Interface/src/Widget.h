@@ -5,6 +5,7 @@
 #include "Sprite.h"
 #include "Text.h"
 #include "Line.h"
+#include "Graph.h"
 
 namespace ui
 {

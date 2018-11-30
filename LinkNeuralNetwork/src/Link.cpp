@@ -3,7 +3,7 @@
 namespace nn {
 
 	Link::Link()
-		: weight(randRange(-2, 2))
+		: weight(randRange(-1, 1))
 	{
 	}
 
