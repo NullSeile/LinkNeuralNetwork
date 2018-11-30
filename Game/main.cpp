@@ -49,7 +49,7 @@ public:
 };*/
 
 #define step 70
-#define iter 40000
+#define iter 10000
 
 int main()
 {
@@ -59,12 +59,13 @@ int main()
 	settings.antialiasingLevel = 16;
 
 	sf::RenderWindow window({ 1200, 700 }, "Game", sf::Style::Default, settings);
-		
+	
 	ui::Graph g("graph");
 	g.SetPosition({ 0, 0 });
 	g.SetSize({ 1200, 700 });
 	g.SetRange({ { 0, iter }, { 0.7f, 0 } });
 	g.SetStep(step);
+	g.SetLineWidth(1.5f);
 
 	nn::Activation sigmoid
 	(
@@ -73,9 +74,8 @@ int main()
 		[](const double& x)->double { return ((1.f / (1.f + exp(-x))) * (1 - (1.f / (1.f + exp(-x))))) + (1 / 10); }
 	);
 
-	nn::NeuralNetwork<2, 2, 1> nn({ 4, 4 }, sigmoid);
+	nn::NeuralNetwork<2, 2, 1> nn({ 5, 5 }, sigmoid);
 	
-
 	std::array<std::array<double, 2>, 4> inputs = { { { 0, 0 }, { 0, 1 }, { 1, 0 }, { 1, 1 } } };
 	std::array<std::array<double, 1>, 4> outputs = { { { 0 }, { 1 }, { 1 }, { 0 } } };
 
