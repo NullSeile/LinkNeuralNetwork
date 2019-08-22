@@ -18,9 +18,12 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="literals.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="utility.h">
+    <ClInclude Include="literals.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

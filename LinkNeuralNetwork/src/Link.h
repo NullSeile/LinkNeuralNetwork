@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core.h"
+#include "Vec2.h"
 
 namespace nn {
 
@@ -8,6 +9,7 @@ namespace nn {
 	{
 	public:
 		Link();
+		Link(const Vec2<double>& initialRange);
 
 		double weight;
 	};

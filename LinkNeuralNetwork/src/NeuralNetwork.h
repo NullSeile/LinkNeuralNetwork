@@ -1,6 +1,8 @@
 #pragma once
 
+#include <fstream>
 #include "Core.h"
+#include "Vec2.h"
 #include "Neuron.h"
 #include "Link.h"
 
@@ -24,7 +26,7 @@ namespace nn
 
 	public:
 		// Constructor
-		NeuralNetwork(const std::array<uint, tHidden>& hiddenLayers, const Activation& activation);
+		NeuralNetwork(const std::array<uint, tHidden>& hiddenLayers, const Activation& activation, const Vec2<double>& linkInitialValue = { -5, 5 });
 
 		// Calculate the outputs from some inputs
 		std::array<double, tOutputs> Calculate(const std::array<double, tInputs>& inputs);
@@ -33,13 +35,16 @@ namespace nn
 		// Returns the error
 		double Train(const std::array<double, tInputs>& inputs, const std::array<double, tOutputs>& optimal, const double& lRate, const double& dropout = 0.0);
 
+		void SaveToFile(const std::string& path);
+		bool LoadFromFile(const std::string& path);
+
 		const std::array<uint, tHidden + 2>& GetStructure() const;
 		const std::array<std::vector<Neuron>, tHidden + 2>& GetNeurons() const;
 		const std::array<std::vector<Link>, tHidden + 1>& GetLinks() const;
 	};
 
-	template<uint tInputs, uint tHidden, uint tOutputs, bool tBias = true>
-	inline NeuralNetwork<tInputs, tHidden, tOutputs, tBias>::NeuralNetwork(const std::array<uint, tHidden>& hiddenLayers, const Activation& activation)
+	template<uint tInputs, uint tHidden, uint tOutputs, bool tBias>
+	inline NeuralNetwork<tInputs, tHidden, tOutputs, tBias>::NeuralNetwork(const std::array<uint, tHidden>& hiddenLayers, const Activation& activation, const Vec2<double>& linkInitalRange)
 		: m_activation(activation)
 	{
 		/////////////////////////
@@ -88,13 +93,13 @@ namespace nn
 			{
 				for (uint n2 = 0; n2 < m_structure[i + 1]; n2++)
 				{
-					m_links[i].push_back(Link());
+					m_links[i].push_back(Link(linkInitalRange));
 				}
 			}
 		}
 	}
 
-	template<uint tInputs, uint tHidden, uint tOutputs, bool tBias = true>
+	template<uint tInputs, uint tHidden, uint tOutputs, bool tBias>
 	inline std::array<double, tOutputs> NeuralNetwork<tInputs, tHidden, tOutputs, tBias>::Calculate(const std::array<double, tInputs>& inputs)
 	{
 		// Output array
@@ -143,7 +148,7 @@ namespace nn
 		return out;
 	}
 
-	template<uint tInputs, uint tHidden, uint tOutputs, bool tBias = true>
+	template<uint tInputs, uint tHidden, uint tOutputs, bool tBias>
 	inline double NeuralNetwork<tInputs, tHidden, tOutputs, tBias>::Train(const std::array<double, tInputs>& inputs, const std::array<double, tOutputs>& optimal, const double& lRate, const double& dropout)
 	{
 		// Make the guess to calclulate the error
@@ -171,13 +176,13 @@ namespace nn
 			m_neurons.back()[i].error = optimal[i] - guess[i];
 		}
 
-		for (uint i = tHidden; i >= 1; i--)
+		for (int i = tHidden; i >= 0; i--)
 		{
-			for (uint j = 0; j < m_structure[i] + tBias; j++)
+			for (int j = 0; j < m_structure[i] + tBias; j++)
 			{
 				m_neurons[i][j].error = 0;
 
-				for (uint k = 0; k < m_structure[i + 1]; k++)
+				for (int k = 0; k < m_structure[i + 1]; k++)
 				{
 					uint index = j * m_structure[i + 1] + k;
 					
@@ -211,6 +216,87 @@ namespace nn
 		}
 
 		return err / tOutputs;
+	}
+
+	template<uint tInputs, uint tHidden, uint tOutputs, bool tBias>
+	inline void NeuralNetwork<tInputs, tHidden, tOutputs, tBias>::SaveToFile(const std::string& path)
+	{
+		std::fstream file;
+		file.open(path, std::fstream::out | std::fstream::trunc);
+	
+		file << tBias << "\n";
+		file << tInputs << "\n";
+		file << tOutputs << "\n";
+		file << tHidden << "\n";
+
+		for (uint i = 1; i < tHidden + 1; i++)
+		{
+			file << m_structure[i] << "\n";
+		}
+
+		for (uint i = 0; i < tHidden + 1; i++)
+		{
+			for (uint j = 0; j < m_links[i].size(); j++)
+			{
+				file << m_links[i][j].weight << "\n";
+			}
+		}
+
+		file.close();
+	}
+
+	template<uint tInputs, uint tHidden, uint tOutputs, bool tBias>
+	inline bool NeuralNetwork<tInputs, tHidden, tOutputs, tBias>::LoadFromFile(const std::string& path)
+	{
+		std::cout << "Loading Neural Network from file...\n";
+
+		std::fstream file;
+		file.open(path);
+
+		std::vector<std::string> save = FileToArray(file);
+		
+		if ((bool)std::stoi(save[0]) != tBias)
+		{
+			std::cout << "Failed to load: Neural Network structure do not match\n\n";
+			return false;
+		}
+		if (std::stoi(save[1]) != tInputs)
+		{
+			std::cout << "Failed to load: Neural Network structure do not match\n\n";
+			return false;
+		}
+		if (std::stoi(save[2]) != tOutputs)
+		{
+			std::cout << "Failed to load: Neural Network structure do not match\n\n";
+			return false;
+		}
+		if (std::stoi(save[3]) != tHidden)
+		{
+			std::cout << "Failed to load: Neural Network structure do not match\n\n";
+			return false;
+		}
+		for (uint i = 1; i < tHidden + 1; i++)
+		{
+			if (m_structure[i] != std::stoi(save[i + 3]))
+			{
+				std::cout << "Failed to load: Neural Network structure do not match\n\n";
+				return false;
+			}
+		}
+
+		uint index = 0;
+		for (uint i = 0; i < tHidden + 1; i++)
+		{
+			for (uint j = 0; j < m_links[i].size(); j++)
+			{
+				m_links[i][j].weight = std::stod(save[index + 3 + tHidden + 1]);
+				index++;
+			}
+		}
+
+		std::cout << "Loaded!\n\n";
+
+		return true;
 	}
 
 	template<uint tInputs, uint tHidden, uint tOutputs, bool tBias>

@@ -2,8 +2,8 @@
 
 namespace nn {
 
-	Link::Link()
-		: weight(randRange(-1, 1))
+	Link::Link(const Vec2<double>& initialRange)
+		: weight(randRange(initialRange.min, initialRange.max))
 	{
 	}
 

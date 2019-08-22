@@ -1,13 +1,19 @@
 #pragma once
 
 #include <iostream>
-#include <ctime>
 #include <chrono>
+#include <fstream>
+#include <string>
+#include <thread>
 
-#define RandINIT() srand((unsigned int)std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count());
+#define RandINIT() srand((unsigned int)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count());
 
 typedef unsigned int uint;
 typedef unsigned char byte;
+
+using namespace std::chrono_literals;
+
+#define WaitFor(x) std::this_thread::sleep_for(x)
 
 class Timer
 {
@@ -17,7 +23,7 @@ private:
 public:
 	Timer()
 	{
-		start = std::chrono::high_resolution_clock::now();
+		Restart();
 	}
 
 	using nanoseconds = std::chrono::duration<double, std::nano>;

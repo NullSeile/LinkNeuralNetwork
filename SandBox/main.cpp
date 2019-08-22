@@ -1,5 +1,5 @@
 #include <LinkNeuralNetwork.h>
-#include <User Interface.h>
+#include <UITools.h>
 #include <SFML\Graphics.hpp>
 #include <iomanip>
 #include "utility.h"
@@ -9,6 +9,9 @@
 
 #define oHIGH 1
 #define oLOW 0
+
+
+
 
 namespace nn {
 
@@ -23,7 +26,9 @@ namespace nn {
 				circle.setOrigin(radius, radius);
 				circle.setOutlineThickness(radius / 20);
 				circle.setOutlineColor(sf::Color::White);
-				circle.setFillColor(sf::Color::Black);
+				float c = (float)nn::map((double)nn.GetNeurons()[i][j].value, 0, 1, 0, 255);
+				//std::cout << nn.GetNeurons()[i][j].error << "\n";
+				circle.setFillColor(sf::Color(c, c, c));
 
 				sf::Vector2f pos1;
 
@@ -65,43 +70,60 @@ namespace nn {
 
 }
 
+// Applies a filter to an image. It reduces a pixel the output image
+std::vector<double> ApplyFilter(const std::vector<double>& filter, const std::vector<double> source, const uint& sourceX, const uint& sourceY)
+{
+	auto get = [](const int& x, const int& y, const int& xMax)->int
+	{
+		return x + xMax * y;
+	};
+
+	std::vector<double> newI;
+
+	int fMaxX = (int)sqrt(filter.size());
+
+	int n = (fMaxX - 1) / 2;
+
+	double total = 0;
+	for (const double& i : filter)
+	{
+		total += abs(i);
+	}
+
+	for (uint y = n; y < sourceY - n; y++)
+	{
+		for (uint x = n; x < sourceX - n; x++)
+		{
+			double sum = 0;
+			for (int i = -n; i <= n; i++)
+			{
+				for (int j = -n; j <= n; j++)
+				{
+					sum += source[get(x + i, y + j, sourceX)] * filter[get(i + n, j + n, fMaxX)];
+				}
+			}
+			newI.push_back(sum / total);
+		}
+	}
+
+	return newI;
+}
+
+
 Timer timer;
 int main()
 {
 	RandINIT();
-
-	std::array<std::array<double, 2>, 4> inputs = { { { iLOW, iLOW },{ iLOW, iHIGH },{ iHIGH, iLOW },{ iHIGH, iHIGH } } };
-	std::array<std::array<double, 1>, 4> outputs = { { { oLOW },{ oHIGH },{ oHIGH },{ oLOW } } };
-
-	nn::Activation sigmoid
-	(
-		"sigmoid",
-		[](const double& x)->double { return (1.f / (1.f + exp(-x))) + (x / 10); },
-		[](const double& x)->double { return ((1.f / (1.f + exp(-x))) * (1 - (1.f / (1.f + exp(-x))))) + (1 / 10); }
-	);
-
-	nn::NeuralNetwork<2, 2, 1, true> nn({ 3, 3 }, sigmoid);
-
-	timer.Restart();
-	for (uint i = 0; i < 2000; i++)
-	{
-		uint index = (rand() % (3 + 1));
-		nn.Train(inputs[index], outputs[index], 0.3, 0.0);
-	}
-	std::cout << timer.GetElapsedTime<Timer::milliseconds>() << "\n";
-
-	std::cout << std::fixed << std::setprecision(5) << nn.Calculate({ iLOW, iLOW })[0] << " | " << nn.Calculate({ iLOW, iHIGH })[0] << " | " << nn.Calculate({ iHIGH, iLOW })[0] << " | " << nn.Calculate({ iHIGH, iHIGH })[0] << "\n";
 
 	sf::ContextSettings settings;
 	settings.antialiasingLevel = 16;
 
 	sf::RenderWindow window({ 1000, 700 }, "Test", sf::Style::Default, settings);
 
-	nn.Calculate({ 0, 1 });
+	nn::NeuralNetwork<2, 3, 1, false> nn({ 4, 4, 4 }, nn::Activation::sigmoid);
 
-	window.clear(sf::Color::Black);
-	nn::Draw(nn, window, { 100,  350 }, 200, 100, 20);
-	window.display();
+	std::array<std::array<double, 2>, 4> inputs =	{ { { 0, 0 },	{ 0, 1 },	{ 1, 0 },	{ 1, 1 } } };
+	std::array<std::array<double, 1>, 4> outputs =	{ { { 0 },		{ 1 },		{ 1 },		{ 0 } } };
 
 	while (window.isOpen())
 	{
@@ -124,6 +146,15 @@ int main()
 					img.saveToFile("C:\\Users\\elies\\Desktop\\save.png");
 				}
 			}
+
+			window.clear();
+
+			nn::Draw(nn, window, { 70, 350 }, 150, 70, 20);
+
+			uint index = (rand() % (3 + 1));
+			nn.Train(inputs[index], outputs[index], 0.1);
+
+			window.display();
 		}
 	}
 }
