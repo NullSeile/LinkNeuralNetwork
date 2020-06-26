@@ -1,9 +1,9 @@
 #include <LinkNeuralNetwork.h>
-#include <UITools.h>
+#include <UITools/UITools.h>
 #include <utility.h>
 #include <fstream>
 
-#define step 10.f
+#define step 20.f
 #define iter 5000.f
 
 int main()
@@ -14,12 +14,13 @@ int main()
 	settings.antialiasingLevel = 16;
 
 	sf::RenderWindow window({ 1200, 600 }, "Game", sf::Style::Default, settings);
+	window.setFramerateLimit(144);
 
 	nn::Activation sigmoid
 	(
 		"sigmoid",
-		[](const double& x)->double { return (1.f / (1.f + exp(-x))) + (x / 20); },
-		[](const double& x)->double { return ((1.f / (1.f + exp(-x))) * (1 - (1.f / (1.f + exp(-x))))) + (1 / 20); }
+		[](const double& x)->double { return (1.0 / (1.0 + exp(-x))) + (x / 20.0); },
+		[](const double& x)->double { return ((1.0 / (1.0 + exp(-x))) * (1.0 - (1.0 / (1.0 + exp(-x))))) + (1.0 / 20.0); }
 	);
 
 	nn::NeuralNetwork<2, 2, 1> nn({ 4, 4 }, sigmoid, { -4, 4 });
@@ -27,7 +28,21 @@ int main()
 	std::array<std::array<double, 2>, 4> inputs = { { { 0, 0 }, { 0, 1 }, { 1, 0 }, { 1, 1 } } };
 	std::array<std::array<double, 1>, 4> outputs = { { { 0 }, { 1 }, { 1 }, { 0 } } };
 
-	auto func = [&](const float& x)->float
+
+	ui::Graph g("g");
+	g.SetPosition({ 0, 0 });
+	g.SetSize(window.getSize());
+
+	std::vector<ui::Vec2f> points;
+
+	//float value = 0.5f;
+	//for (float x = 0; x < 100; x++)
+	//{
+	//	points.push_back({ x, value });
+	//	value *= 3.5f * (1 - value);
+	//}
+
+	for (float x = 0; x < iter; x += step)
 	{
 		float sum = 0;
 		for (int i = 0; i < step; i++)
@@ -36,37 +51,23 @@ int main()
 			sum += (float)nn.Train(inputs[index], outputs[index], 0.3);
 		}
 
-		return sum / step;
-	};
+		points.push_back({ x, sum / step });
+	}
 
-	ui::Graph g
-	(
-		"g",
-		func,
-		{ 0, iter },
-		{ 0.f, 0.7f },
-		step
-	);
-	g.SetLineWidth(1.5f);
-	g.SetSize((sf::Vector2f)window.getSize());
-	g.SetPosition({ 0, 0 });
+	g.Plot(points, { 2, { 50, 50, 200 } });
 
-	Timer t;
-	g.Recalculate();
-	std::cout << t.GetElapsedTime<Timer::milliseconds>() << "\n";
+	g.Fit();
+
 
 	//nn.LoadFromFile("C:/Users/elies/Desktop/save.txt");
 
-	std::cout << nn.Calculate({ 0, 0 })[0] << " | " << nn.Calculate({ 0, 1 })[0] << " | " << nn.Calculate({ 1, 0 })[0] << " | " << nn.Calculate({ 1, 1 })[0] << "\n";
+	//std::cout << nn.Calculate({ 0, 0 })[0] << " | " << nn.Calculate({ 0, 1 })[0] << " | " << nn.Calculate({ 1, 0 })[0] << " | " << nn.Calculate({ 1, 1 })[0] << "\n";
 
-	g.Draw(window);
-	window.display();
-
+	
 	//Timer t;
-	float i = 0;
 	while (window.isOpen())
 	{
-		sf::Event e;
+		ui::Event e;
 		while (window.pollEvent(e))
 		{
 			if (e.type == sf::Event::Closed)
@@ -89,10 +90,27 @@ int main()
 					nn.SaveToFile("C:/Users/elies/Desktop/save.txt");
 				}
 			}
+
+			if (e.type == sf::Event::Resized)
+			{
+				ui::Vec2f size = window.getSize();
+
+				sf::View view = window.getView();
+				view.setSize(size);
+				view.setCenter(size / 2.f);
+				window.setView(view);
+
+				g.SetSize(size);
+			}
+
+			//g.CheckInput(window, e);
 		}
 
-		//window.clear();
+		window.clear();
 
-		//window.display();
+		g.Update(window);
+		g.Draw(window);
+
+		window.display();
 	}
 }

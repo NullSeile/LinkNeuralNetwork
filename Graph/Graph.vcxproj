@@ -104,7 +104,8 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)vendor\SFML x64\include;$(SolutionDir)LinkNeuralNetwork;$(SolutionDir)User Interface;$(SolutionDir)vendor/;$(SolutionDir)UITools</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vendor\SFML x64\include;$(SolutionDir)LinkNeuralNetwork;$(SolutionDir)User Interface;$(SolutionDir)vendor/;$(SolutionDir)vendor</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(SolutionDir)vendor\SFML x64\lib</AdditionalLibraryDirectories>
@@ -136,7 +137,8 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)vendor\SFML x64\include;$(SolutionDir)LinkNeuralNetwork;$(SolutionDir)User Interface;$(SolutionDir)vendor/;$(SolutionDir)UITools</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)vendor\SFML x64\include;$(SolutionDir)LinkNeuralNetwork;$(SolutionDir)User Interface;$(SolutionDir)vendor/;$(SolutionDir)vendor</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -146,15 +148,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\LinkNeuralNetwork\LinkNeuralNetwork.vcxproj">
       <Project>{8dce7be1-ae3b-4138-9b77-ec8a722fbe78}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\UITools\UITools.vcxproj">
+    <ProjectReference Include="..\vendor\UITools\UITools.vcxproj">
       <Project>{b545bb43-3e93-4876-9d6d-1beb1e25c1ad}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

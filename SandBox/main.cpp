@@ -16,19 +16,24 @@
 namespace nn {
 
 	template<uint tInputs, uint tHidden, uint tOutputs, bool tBias>
-	void Draw(const nn::NeuralNetwork<tInputs, tHidden, tOutputs, tBias>& nn, sf::RenderWindow& window, const sf::Vector2f& sPos, const float& scaleX, const float& scaleY, const float& radius)
+	void Draw(const nn::NeuralNetwork<tInputs, tHidden, tOutputs, tBias>& nn, sf::RenderWindow& window, const ui::Vec2f& sPos, const float& scaleX, const float& scaleY, const float& radius)
 	{
+		sf::Color mColor = { 165, 200, 225 };
+
 		for (uint i = 0; i < tHidden + 2; i++)
 		{
 			for (uint j = 0; j < nn.GetStructure()[i] + (j != tHidden - 1 ? tBias : 0); j++)
 			{
 				sf::CircleShape circle(radius);
 				circle.setOrigin(radius, radius);
-				circle.setOutlineThickness(radius / 20);
-				circle.setOutlineColor(sf::Color::White);
-				float c = (float)nn::map((double)nn.GetNeurons()[i][j].value, 0, 1, 0, 255);
+				circle.setOutlineThickness(radius / 4);
+				//circle.setOutlineColor(mColor);
+				circle.setOutlineColor(sf::Color::Black);
+				//float c = (float)nn::map((double)nn.GetNeurons()[i][j].value, 0, 1, 0, 255);
+				float c = 170;
 				//std::cout << nn.GetNeurons()[i][j].error << "\n";
 				circle.setFillColor(sf::Color(c, c, c));
+				//circle.setFillColor(sf::Color::White);
 
 				sf::Vector2f pos1;
 
@@ -41,7 +46,7 @@ namespace nn {
 				{
 					for (uint k = 0; k < nn.GetStructure()[i + 1]; k++)
 					{
-						sf::Vector2f pos2;
+						ui::Vec2f pos2;
 
 						pos2.x = (i + 1) * scaleX;
 						pos2.y = (k * scaleY) - (scaleY * ((nn.GetStructure()[i + 1] - 1) / 2.f)) + (k == nn.GetStructure()[i + 1] ? (scaleY / 3) : 0);
@@ -50,15 +55,22 @@ namespace nn {
 
 						uint index = k * nn.GetStructure()[i] + j;
 
-						l.SetWidth(radius / 10);
+						float w = (tanh(nn.GetLinks()[i][index].weight) + 3) / 7.f;
 
-						double color = tanh(nn.GetLinks()[i][index].weight);
+						//l.SetWidth(randRange(5, 10));
 
-						double r = (color < 0 ? 1 : 1 - color) * 255;
-						double g = (color > 0 ? 1 : 1 + color) * 255;
-						double b = (1 - abs(color)) * 255;
+						l.SetWidth(radius / 8.f);
 
-						l.SetColor({ (byte)r, (byte)g, (byte)b });
+						//double color = tanh(nn.GetLinks()[i][index].weight);
+
+						//double r = (color < 0 ? 1 : 1 - color) * 255;
+						//double g = (color > 0 ? 1 : 1 + color) * 255;
+						//double b = (1 - abs(color)) * 255;
+
+						//l.SetColor({ (byte)r, (byte)g, (byte)b });
+
+						//l.SetColor(mColor);
+						l.SetColor(sf::Color::Black);
 						l.Draw(window);
 					}
 				}
@@ -110,22 +122,56 @@ std::vector<double> ApplyFilter(const std::vector<double>& filter, const std::ve
 }
 
 
-Timer timer;
 int main()
 {
 	RandINIT();
+	
+	Timer t;
 
-	sf::ContextSettings settings;
-	settings.antialiasingLevel = 16;
+	//sf::ContextSettings settings;
+	//settings.antialiasingLevel = 16;
 
-	sf::RenderWindow window({ 1000, 700 }, "Test", sf::Style::Default, settings);
+	//sf::RenderWindow window({ 1920, 1080}, "Test", sf::Style::Default, settings);
 
-	nn::NeuralNetwork<2, 3, 1, false> nn({ 4, 4, 4 }, nn::Activation::sigmoid);
 
-	std::array<std::array<double, 2>, 4> inputs =	{ { { 0, 0 },	{ 0, 1 },	{ 1, 0 },	{ 1, 1 } } };
-	std::array<std::array<double, 1>, 4> outputs =	{ { { 0 },		{ 1 },		{ 1 },		{ 0 } } };
+	//window.clear({217, 217, 217});
+	//window.clear(sf::Color::White);
+	//nn::Draw(nn, window, { 200, 520 }, 350, 120, 25);
 
-	while (window.isOpen())
+	//window.display();
+	std::array<std::array<double, 2>, 4> inputs =	{ { { 0, 0 },	{ 0, 1 },	{ 1, 0 },	{ 1, 1 }	} };
+	std::array<std::array<double, 1>, 4> outputs =	{ { { 0 },		{ 1 },		{ 1 },		{ 0 }		} };
+
+	nn::NeuralNetwork<2, 2, 1, false> nn({ 500, 500 }, nn::Activation::sigmoid);
+
+	const int steps = 1000;
+	float sum;
+	
+	sum = 0;
+	for (int i = 0; i < steps; i++)
+	{
+		uint index = (rand() % (3 + 1));
+
+		t.Restart();
+		nn.Train(inputs[index], outputs[index], 0.3, 0.0, true);
+		sum += t.GetElapsedTime<Timer::milliseconds>();
+	}
+	std::cout << "Async: " << sum / (float)steps << "\n";
+
+	//sum = 0;
+	//for (int i = 0; i < steps; i++)
+	//{
+	//	uint index = (rand() % (3 + 1));
+
+	//	t.Restart();
+	//	nn.Train(inputs[index], outputs[index], 0.3, 0.0, false);
+	//	sum += t.GetElapsedTime<Timer::milliseconds>();
+	//}
+	//std::cout << "Squen: " << sum / (float)steps << "\n";
+
+	system("pause");
+
+	/*while (window.isOpen())
 	{
 		sf::Event e;
 		while (window.pollEvent(e))
@@ -147,14 +193,14 @@ int main()
 				}
 			}
 
-			window.clear();
+			//window.clear();
 
-			nn::Draw(nn, window, { 70, 350 }, 150, 70, 20);
+			//nn::Draw(nn, window, { 70, 350 }, 150, 70, 20);
 
-			uint index = (rand() % (3 + 1));
-			nn.Train(inputs[index], outputs[index], 0.1);
+			//uint index = (rand() % (3 + 1));
+			//nn.Train(inputs[index], outputs[index], 0.1);
 
-			window.display();
+			//window.display();
 		}
-	}
+	}*/
 }
