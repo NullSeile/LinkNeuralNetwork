@@ -6,6 +6,7 @@
 #include <string>
 #include <fstream>
 #include <functional>
+#include <execution>
 
 #define LNN_BUILD_DLL 0
 
@@ -41,5 +42,49 @@ namespace nn {
 	{
 		return min + (rand() / (RAND_MAX / ((max + 0) - min)));
 	}
+
+	// [begin, end)
+	template<typename F>
+	inline void for_async(int begin, int end, F func, const bool& async = true)
+	{
+		if (async)
+		{
+			std::vector<int> x;
+			if (begin > end)
+			{
+				for (int i = begin; i > end; i--)
+				{
+					x.push_back(i);
+				}
+			}
+			else
+			{
+				for (int i = begin; i < end; i++)
+				{
+					x.push_back(i);
+				}
+			}
+
+			std::for_each(std::execution::par, x.begin(), x.end(), func);
+		}
+		else
+		{
+			if (begin > end)
+			{
+				for (int i = begin; i > end; i--)
+				{
+					func(i);
+				}
+			}
+			else
+			{
+				for (int i = begin; i < end; i++)
+				{
+					func(i);
+				}
+			}
+		}
+	}
+
 
 }

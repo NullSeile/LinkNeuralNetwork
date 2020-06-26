@@ -27,13 +27,14 @@ namespace nn
 	public:
 		// Constructor
 		NeuralNetwork(const std::array<uint, tHidden>& hiddenLayers, const Activation& activation, const Vec2<double>& linkInitialValue = { -5, 5 });
+		NeuralNetwork(const std::string& path);
 
 		// Calculate the outputs from some inputs
-		std::array<double, tOutputs> Calculate(const std::array<double, tInputs>& inputs);
+		std::array<double, tOutputs> Calculate(const std::array<double, tInputs>& inputs, bool async = true);
 		
 		// Adjust the link weights to return the optimal outputs to the inputs
 		// Returns the error
-		double Train(const std::array<double, tInputs>& inputs, const std::array<double, tOutputs>& optimal, const double& lRate, const double& dropout = 0.0);
+		double Train(const std::array<double, tInputs>& inputs, const std::array<double, tOutputs>& optimal, const double& lRate, const double& dropout = 0.0, bool async = true);
 
 		void SaveToFile(const std::string& path);
 		bool LoadFromFile(const std::string& path);
@@ -100,7 +101,13 @@ namespace nn
 	}
 
 	template<uint tInputs, uint tHidden, uint tOutputs, bool tBias>
-	inline std::array<double, tOutputs> NeuralNetwork<tInputs, tHidden, tOutputs, tBias>::Calculate(const std::array<double, tInputs>& inputs)
+	inline NeuralNetwork<tInputs, tHidden, tOutputs, tBias>::NeuralNetwork(const std::string& path)
+	{
+
+	}
+
+	template<uint tInputs, uint tHidden, uint tOutputs, bool tBias>
+	inline std::array<double, tOutputs> NeuralNetwork<tInputs, tHidden, tOutputs, tBias>::Calculate(const std::array<double, tInputs>& inputs, bool async)
 	{
 		// Output array
 		std::array<double, tOutputs> out;
@@ -117,7 +124,8 @@ namespace nn
 		// For each neuron from second layer (skip the input layer)
 		for (uint i = 1; i < tHidden + 2; i++)
 		{
-			for (uint j = 0; j < m_structure[i]; j++)
+			//for (uint j = 0; j < m_structure[i]; j++)
+			for_async(0, m_structure[i], [&](const int& j)
 			{
 				double sum = 0;
 
@@ -136,7 +144,7 @@ namespace nn
 
 				// Set the raw value to pass it throught the derivative
 				m_neurons[i][j].raw = sum;
-			}
+			}, async);
 		}
 
 		// Set the output array to be the last layer of the net
@@ -149,24 +157,25 @@ namespace nn
 	}
 
 	template<uint tInputs, uint tHidden, uint tOutputs, bool tBias>
-	inline double NeuralNetwork<tInputs, tHidden, tOutputs, tBias>::Train(const std::array<double, tInputs>& inputs, const std::array<double, tOutputs>& optimal, const double& lRate, const double& dropout)
+	inline double NeuralNetwork<tInputs, tHidden, tOutputs, tBias>::Train(const std::array<double, tInputs>& inputs, const std::array<double, tOutputs>& optimal, const double& lRate, const double& dropout, bool async)
 	{
 		// Make the guess to calclulate the error
-		std::array<double, tOutputs> guess = this->Calculate(inputs);
+		std::array<double, tOutputs> guess = this->Calculate(inputs, async);
 
 		// Dropout
 		if (dropout > 0)
 		{
 			for (uint i = 1; i < tHidden + 1; i++)
 			{
-				for (uint j = 0; j < m_structure[i]; j++)
+				//for (uint j = 0; j < m_structure[i]; j++)
+				for_async(0, m_structure[i], [&](const int& j)
 				{
 					if (randRange(0, 1) < dropout)
 					{
 						m_neurons[i][j].value = 0;
 						m_neurons[i][j].raw = 0;
 					}
-				}
+				}, async);
 			}
 		}
 		
@@ -178,24 +187,26 @@ namespace nn
 
 		for (int i = tHidden; i >= 0; i--)
 		{
-			for (int j = 0; j < m_structure[i] + tBias; j++)
+			//for (int j = 0; j < m_structure[i] + tBias; j++)
+			for_async(0, m_structure[i] + tBias, [&](const int& j)
 			{
 				m_neurons[i][j].error = 0;
 
-				for (int k = 0; k < m_structure[i + 1]; k++)
+				for (uint k = 0; k < m_structure[i + 1]; k++)
 				{
 					uint index = j * m_structure[i + 1] + k;
-					
+
 					// Dont quite understand :(
 					m_neurons[i][j].error += m_links[i][index].weight * m_neurons[i + 1][k].error;
 				}
-			}
+			}, async);
 		}
 
 		// Adjust the weights
 		for (uint i = 0; i < tHidden + 1; i++)
 		{
-			for (uint j = 0; j < m_structure[i] + tBias; j++)
+			//for (uint j = 0; j < m_structure[i] + tBias; j++)
+			for_async(0, m_structure[i] + tBias, [&](const int& j)
 			{
 				for (uint k = 0; k < m_structure[i + 1]; k++)
 				{
@@ -203,10 +214,10 @@ namespace nn
 
 					// Dont understand ( f'(frontNeuron.value) * frontNeuron.error * backNeuron.value * learningRate )
 					double delta = m_neurons[i + 1][k].activation.derivate(m_neurons[i + 1][k].raw) * m_neurons[i + 1][k].error * m_neurons[i][j].value * lRate;
-					
+
 					m_links[i][index].weight += delta;
 				}
-			}
+			}, async);
 		}
 
 		double err = 0;
