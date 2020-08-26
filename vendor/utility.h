@@ -5,6 +5,7 @@
 #include <fstream>
 #include <string>
 #include <thread>
+#include <execution>
 
 #define RandINIT() srand((unsigned int)std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count());
 
@@ -53,4 +54,51 @@ inline double map(const double& value, const double& inputMin, const double& inp
 inline double randRange(const double& min, const double& max)
 {
 	return min + (rand() / (RAND_MAX / ((max + 0) - min)));
+}
+
+inline float randRange(const float& min, const float& max)
+{
+	return min + (rand() / (RAND_MAX / ((max + 0) - min)));
+}
+
+template<typename F>
+inline void for_async(int begin, int end, F func, const bool& async = true)
+{
+	if (async)
+	{
+		std::vector<int> x;
+		if (begin > end)
+		{
+			for (int i = begin; i > end; i--)
+			{
+				x.push_back(i);
+			}
+		}
+		else
+		{
+			for (int i = begin; i < end; i++)
+			{
+				x.push_back(i);
+			}
+		}
+
+		std::for_each(std::execution::par, x.begin(), x.end(), func);
+	}
+	else
+	{
+		if (begin > end)
+		{
+			for (int i = begin; i > end; i--)
+			{
+				func(i);
+			}
+		}
+		else
+		{
+			for (int i = begin; i < end; i++)
+			{
+				func(i);
+			}
+		}
+	}
 }

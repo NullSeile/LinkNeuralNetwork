@@ -55,9 +55,7 @@ namespace nn
 }
 
 
-//#include <NeuralNetwork.h>
-#include <Tools\NeuralNetworkGlobals.h>
-#include <Tools\ConvolutionalTools.h>
+#include <LinkNeuralNetwork.h>
 #include <SFML\Graphics.hpp>
 
 #define PI 3.1415926535
@@ -132,7 +130,7 @@ int main()
 	{
 		for (uint x = 0; x < imgT.getSize().x; x++)
 		{
-			img.push_back(map<double>(imgT.getPixel(x, y).r, 0, 255, -1, 1));
+			img.push_back(nn::map(imgT.getPixel(x, y).r, 0, 255, -1, 1));
 		}
 	}
 

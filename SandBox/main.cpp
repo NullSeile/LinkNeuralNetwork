@@ -169,7 +169,6 @@ int main()
 	//}
 	//std::cout << "Squen: " << sum / (float)steps << "\n";
 
-	system("pause");
 
 	/*while (window.isOpen())
 	{

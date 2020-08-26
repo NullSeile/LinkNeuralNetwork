@@ -1,28 +1,31 @@
 #include <LinkNeuralNetwork.h>
-#include <UITools.h>
+#include <UITools\UITools.h>
 #include <utility.h>
-#include <fstream>
 #include <filesystem>
+#include <fstream>
+#include <random>
 
 #define step 10.f
 #define iter 5000.f
 
 int main()
 {
-	RandINIT();
+	RandINIT(); 
+	std::mt19937 randomGen(time(0));
 
 	// Testing data
-	std::array<std::vector<std::array<double, 28 * 28>*>, 10> data;
+	//std::array<std::vector<std::array<double, 28 * 28>*>, 10> data;
+	std::vector<std::array<double, 28 * 28>*> data;
 
 	for (int n = 0; n < 10; n++)
 	{
-		std::string path = "C:\\Users\\elies\\Desktop\\Data\\mnist_png\\training\\";
+		std::string path = "D:\\Development\\Datasets\\mnist_png\\train\\";
 		path += std::to_string(n);
 
 		std::cout << path << "\n";
 
 		int i = 0;
-		for (auto& p : std::experimental::filesystem::directory_iterator(path))
+		for (auto& p : std::filesystem::directory_iterator(path))
 		{
 			sf::Image img;
 			img.loadFromFile(p.path().string());
@@ -38,7 +41,7 @@ int main()
 				}
 			}
 
-			data[n].push_back(arr);
+			data.push_back(arr);
 			//std::cout << "arr" << i << "\n";
 			i++;
 
@@ -47,46 +50,32 @@ int main()
 		}
 	}
 
-	std::random_shuffle(data.begin(), data.end());
+	std::shuffle(data.begin(), data.end(), randomGen);
 
 	nn::Activation sigmoid
 	(
 		"sigmoid",
-		[](const double& x)->double { return (1.f / (1.f + exp(-x))) + (x / 20); },
-		[](const double& x)->double { return ((1.f / (1.f + exp(-x))) * (1 - (1.f / (1.f + exp(-x))))) + (1 / 20); }
+		[](const double& x)->double { return (1.f / (1.f + exp(-x))); },
+		[](const double& x)->double { return ((1.f / (1.f + exp(-x))) * (1 - (1.f / (1.f + exp(-x))))); }
 	);
 
-	nn::NeuralNetwork<5, 5, 28 * 28> decoder({ 50, 100, 200, 300, 500 }, sigmoid);
+	//nn::NeuralNetwork<5, 5, 28 * 28> decoder({ 50, 100, 200, 300, 500 }, sigmoid);
+
+	nn::NeuralNetwork<28 * 28, 9, 28 * 28> autoenc({ 500, 200, 100, 50, 20, 50, 100, 200, 500 }, nn::Activation::sigmoid );
 
 	/*for (auto& input : data[0])
 	{
 		decoder.Train({ 1, 0, 0, 0, 0 }, *input, 0.05);
 	}*/
 
-	for (uint i = 0; i < 100; i++)
+	for (uint i = 0; i < 10; i++)
 	{
-		for (auto& input : data[1])
+		for (auto& input : data)
 		{
-			decoder.Train({ 0, 1, 0, 0, 0 }, *input, 0.05);
+			autoenc.Train(*input, *input, 0.05);
 		}
 	}
-
-	/*for (auto& input : data[2])
-	{
-		decoder.Train({ 0, 0, 1, 0, 0 }, *input, 0.05);
-	}
-
-	for (auto& input : data[3])
-	{
-		decoder.Train({ 0, 0, 0, 1, 0 }, *input, 0.05);
-	}
-
-	for (auto& input : data[4])
-	{
-		decoder.Train({ 0, 0, 0, 0, 1 }, *input, 0.05);
-	}*/
-
-	auto output = decoder.Calculate({ 0, 1, 0, 0, 0 });
+	auto output = autoenc.Calculate(*data[0]);
 
 	sf::Image imgOut;
 	imgOut.create(28, 28);
